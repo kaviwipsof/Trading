@@ -1,4 +1,4 @@
-from binance.client import Client
+import ccxt
 import pandas as pd
 from dash import Dash, dash_table, html, dcc
 from dash.dependencies import Input, Output
@@ -15,15 +15,18 @@ SYMBOLS = [
     "USDTUSD","SHIBUSDT"
 ]
 
-HTF = Client.KLINE_INTERVAL_1HOUR
-LTF = Client.KLINE_INTERVAL_15MINUTE
+HTF = "1h"
+LTF = "15m"
 LIMIT = 300
 REFRESH_SEC = 900  # 15 minutes
 
 RR_TREND = 2.0
 RR_RANGE = 1.5
 
-client = Client()
+# ================= CCXT EXCHANGE =================
+exchange = ccxt.binance({
+    "enableRateLimit": True
+})
 
 # ================= INDICATORS =================
 def ema(series, span):
@@ -57,13 +60,19 @@ def candle_bias(c):
         return "RANGE"
 
 # ================= DATA =================
+def ccxt_symbol(symbol):
+    return symbol.replace("USDT", "/USDT")
+
 def get_df(symbol, tf):
-    kl = client.get_klines(symbol=symbol, interval=tf, limit=LIMIT)
-    df = pd.DataFrame(kl, columns=[
-        "time","o","h","l","c","v","x","q","n","t","T","i"
-    ])
-    for col in ["c","h","l"]:
-        df[col] = df[col].astype(float)
+    ohlcv = exchange.fetch_ohlcv(
+        ccxt_symbol(symbol),
+        timeframe=tf,
+        limit=LIMIT
+    )
+    df = pd.DataFrame(
+        ohlcv,
+        columns=["time","o","h","l","c","v"]
+    )
     return df
 
 # ================= ENGINE =================
@@ -169,7 +178,7 @@ def evaluate(symbol):
         "SELL": sell,
         "SELL Reason": sell_reason,
 
-        "Chart": f"https://www.tradingview.com/chart/?symbol=BINANCE:{symbol}"
+        "Chart": f"https://www.binance.com/en/trade/{symbol.replace('USDT','')}_USDT?type=spot"
     }
 
 # ================= DASH =================
@@ -218,7 +227,8 @@ def refresh(_):
             r = evaluate(s)
             r["Chart"] = f"[Open]({r['Chart']})"
             rows.append(r)
-        except:
+        except Exception as e:
+            print(s, e)
             continue
     return rows
 
