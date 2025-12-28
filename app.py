@@ -183,6 +183,7 @@ def evaluate(symbol):
 
 # ================= DASH =================
 app = Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
+server = app.server
 
 app.layout = dbc.Container([
     html.H3("📊 Final Trend + Range Engine — Candle Metrics Enabled",
