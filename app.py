@@ -9,10 +9,9 @@ import os
 SYMBOLS = [
     "BTCUSDT","ETHUSDT","SOLUSDT","BNBUSDT",
     "AVAXUSDT","LINKUSDT","XRPUSDT","TRXUSDT","ZECUSDT",
-    "ATOMUSDT","TRUMPUSDT","SUIUSDT","DOGEUSDT","DOTUSDT",
+    "ATOMUSDT","SUIUSDT","DOGEUSDT","DOTUSDT",
     "ADAUSDT","LUNCUSDT","AAVEUSDT","DASHUSDT","LTCUSDT",
-    "XTZUSDT","TURTLEUSDT","INJUSDT","ICPUSDT","TONUSDT",
-    "USDTUSD","SHIBUSDT"
+    "XTZUSDT","INJUSDT","ICPUSDT","TONUSDT","SHIBUSDT"
 ]
 
 HTF = "1h"
@@ -23,9 +22,12 @@ REFRESH_SEC = 900  # 15 minutes
 RR_TREND = 2.0
 RR_RANGE = 1.5
 
-# ================= CCXT EXCHANGE =================
-exchange = ccxt.binance({
-    "enableRateLimit": True
+# ================= CCXT EXCHANGE (BYBIT) =================
+exchange = ccxt.bybit({
+    "enableRateLimit": True,
+    "options": {
+        "defaultType": "spot"
+    }
 })
 
 # ================= INDICATORS =================
@@ -178,7 +180,7 @@ def evaluate(symbol):
         "SELL": sell,
         "SELL Reason": sell_reason,
 
-        "Chart": f"https://www.binance.com/en/trade/{symbol.replace('USDT','')}_USDT?type=spot"
+        "Chart": f"https://www.tradingview.com/chart/?symbol=BYBIT:{symbol}"
     }
 
 # ================= DASH =================
@@ -186,7 +188,7 @@ app = Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
 server = app.server
 
 app.layout = dbc.Container([
-    html.H3("📊 Final Trend + Range Engine — Candle Metrics Enabled",
+    html.H3("📊 Trend + Range Engine (Bybit Data, TradingView Charts)",
             className="text-center my-3"),
 
     dash_table.DataTable(
